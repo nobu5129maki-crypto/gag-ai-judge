@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ギャグ判定アプリ</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>ギャグ判定<span class="accent">アプリ</span></h1>
+      <p class="subtitle">AIがあなたのギャグを採点します</p>
+    </header>
+
+    <main class="main">
+      <section class="input-section">
+        <div class="input-tabs">
+          <button type="button" class="tab active" data-tab="text">テキスト入力</button>
+          <button type="button" class="tab" data-tab="mic">マイク入力</button>
+        </div>
+
+        <div class="input-area text-input-area active">
+          <textarea
+            id="gagInput"
+            placeholder="ギャグを入力してください&#10;例：なぜ海の魚は怒っている？　→　潮が来るから"
+            rows="4"
+          ></textarea>
+        </div>
+
+        <div class="input-area mic-input-area">
+          <div class="mic-status" id="micStatus">マイクボタンを押して話してください</div>
+          <button type="button" class="mic-btn" id="micBtn" aria-label="マイクで録音">
+            <span class="mic-icon">🎤</span>
+            <span class="mic-label">録音開始</span>
+          </button>
+          <div class="mic-result" id="micResult"></div>
+        </div>
+
+        <button type="button" class="judge-btn" id="judgeBtn">判定する</button>
+      </section>
+
+      <section class="result-section" id="resultSection">
+        <div class="result-card" id="resultCard">
+          <div class="score-display" id="scoreDisplay">
+            <span class="score-number" id="scoreNumber">--</span>
+            <span class="score-unit">点</span>
+          </div>
+          <p class="comment" id="comment"></p>
+        </div>
+      </section>
+
+      <section class="history-section">
+        <h2>🏆 ベスト3</h2>
+        <div class="best-list" id="bestList">
+          <div class="empty-state" id="emptyState">まだ判定履歴がありません</div>
+          <ol class="best-items" id="bestItems"></ol>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>ギャグを入力して「判定する」をクリック</p>
+    </footer>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "gag-judge",
+  "version": "1.0.0",
+  "description": "AIでギャグを判定するアプリ",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "openai": "^4.20.1"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  }
+}
