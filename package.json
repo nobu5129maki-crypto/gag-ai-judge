@@ -1,5 +1,6 @@
 {
   "name": "gag-judge",
+  "type": "module",
   "version": "1.0.0",
   "description": "AIでギャグを判定するアプリ",
   "scripts": {
