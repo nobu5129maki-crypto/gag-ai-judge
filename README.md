@@ -11,7 +11,7 @@ AIがあなたのギャグを0〜100点で採点するWebアプリです。
 
 ## セキュリティ
 
-- **APIキーはサーバー側のみ**: OpenAI APIキーはVercelの環境変数で管理し、HTMLやクライアントには一切含まれません
+- **APIキーはサーバー側のみ**: Google AI APIキーはVercelの環境変数で管理し、HTMLやクライアントには一切含まれません
 
 ## Vercelへのデプロイ
 
@@ -27,9 +27,10 @@ Vercelのプロジェクト設定 → Environment Variables で以下を追加�
 
 | 名前 | 値 |
 |------|-----|
-| `OPENAI_API_KEY` | あなたのOpenAI APIキー |
+| `GOOGLE_API_KEY` | あなたのGoogle AI (Gemini) APIキー |
 
-- APIキーは [OpenAI Platform](https://platform.openai.com/api-keys) で取得できます
+- APIキーは [Google AI Studio](https://aistudio.google.com/apikey) で無料取得できます
+- 既存の `OPENAI_API_KEY` がある場合は削除し、`GOOGLE_API_KEY` に置き換えてください
 
 ### 4. デプロイ
 
@@ -42,12 +43,12 @@ npm install
 npm run dev
 ```
 
-ローカルでは `.env` に `OPENAI_API_KEY` を設定するか、Vercel CLI でリンクして環境変数を同期してください。
+ローカルでは `.env` に `GOOGLE_API_KEY` を設定するか、Vercel CLI でリンクして環境変数を同期してください。
 
 ## 技術スタック
 
 - **ホスティング**: Vercel（サーバーレス）
 - **API**: Vercel Serverless Functions（`/api/judge`）
-- **AI**: OpenAI API (gpt-4o-mini)
+- **AI**: Google AI (Gemini) API
 - **フロントエンド**: HTML, CSS, JavaScript
 - **音声認識**: Web Speech API
