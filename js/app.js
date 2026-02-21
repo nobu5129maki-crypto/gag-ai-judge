@@ -38,10 +38,16 @@ async function judgeGag(gagText) {
       body: JSON.stringify({ gag: text }),
     });
 
-    const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error(`サーバーエラー (${res.status})`);
+    }
 
     if (!res.ok) {
-      throw new Error(data.error || '判定に失敗しました');
+      const detail = data.detail ? `\n\n【詳細】\n${data.detail}` : '';
+      throw new Error((data.error || '判定に失敗しました') + detail);
     }
 
     showResult(data.score, data.comment);
