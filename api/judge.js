@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'ギャグを入力してください' });
   }
 
-  const apiKey = process.env.GOOGLE_API_KEY;
+  const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     return res.status(500).json({
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents: `以下のギャグを採点してください：「${trimmedGag}」`,
       config: {
         systemInstruction: `あなたはお笑いのプロ審査員です。ユーザーが入力したギャグを0〜100点で採点し、短いコメントを返してください。
@@ -39,7 +39,14 @@ export default async function handler(req, res) {
       },
     });
 
-    const textContent = response?.text ?? '';
+    let textContent = '';
+    if (typeof response?.text === 'string') {
+      textContent = response.text;
+    } else if (response?.text != null) {
+      textContent = String(response.text);
+    } else if (response?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      textContent = response.candidates[0].content.parts[0].text;
+    }
 
     let result;
     try {
@@ -54,10 +61,12 @@ export default async function handler(req, res) {
 
     res.json(result);
   } catch (err) {
+    const errMsg = err?.message || err?.toString?.() || String(err);
+    const errStatus = err?.status || err?.statusCode;
     console.error('Google AI API Error:', err);
     res.status(500).json({
       error: 'AI判定中にエラーが発生しました',
-      detail: err.message || String(err),
+      detail: errMsg + (errStatus ? ` (status: ${errStatus})` : ''),
     });
   }
 }
