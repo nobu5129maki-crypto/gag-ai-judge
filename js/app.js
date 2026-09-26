@@ -9,6 +9,27 @@ const emptyState = document.getElementById('emptyState');
 const micBtn = document.getElementById('micBtn');
 const micStatus = document.getElementById('micStatus');
 const micResult = document.getElementById('micResult');
+const formError = document.getElementById('formError');
+const MAX_GAG = 400;
+
+function showError(message) {
+  if (!message) {
+    formError.hidden = true;
+    formError.textContent = '';
+    return;
+  }
+  formError.hidden = false;
+  formError.textContent = message;
+}
+
+function readHistory() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 // タブ切り替え
 document.querySelectorAll('.tab').forEach((tab) => {
@@ -17,6 +38,7 @@ document.querySelectorAll('.tab').forEach((tab) => {
     document.querySelectorAll('.input-area').forEach((a) => a.classList.remove('active'));
     tab.classList.add('active');
     document.querySelector(`.${tab.dataset.tab}-input-area`).classList.add('active');
+    showError('');
   });
 });
 
@@ -24,18 +46,26 @@ document.querySelectorAll('.tab').forEach((tab) => {
 async function judgeGag(gagText) {
   const text = (gagText || gagInput.value).trim();
   if (!text) {
-    alert('ギャグを入力してください');
+    showError('ギャグを入力してください');
+    return;
+  }
+  if (text.length > MAX_GAG) {
+    showError(`ギャグは${MAX_GAG}文字以内にしてください`);
     return;
   }
 
+  showError('');
   judgeBtn.disabled = true;
   judgeBtn.textContent = '判定中...';
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 40000);
 
   try {
     const res = await fetch('/api/judge', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gag: text }),
+      signal: controller.signal,
     });
 
     let data;
@@ -46,8 +76,7 @@ async function judgeGag(gagText) {
     }
 
     if (!res.ok) {
-      const detail = data.detail ? `\n\n【詳細】\n${data.detail}` : '';
-      throw new Error((data.error || '判定に失敗しました') + detail);
+      throw new Error(data.error || '判定に失敗しました');
     }
 
     showResult(data.score, data.comment);
@@ -56,8 +85,12 @@ async function judgeGag(gagText) {
     gagInput.value = '';
     micResult.textContent = '';
   } catch (err) {
-    alert(err.message);
+    const message = err.name === 'AbortError'
+      ? '判定に時間がかかっています。もう一度お試しください。'
+      : (err.message || '判定に失敗しました');
+    showError(message);
   } finally {
+    clearTimeout(timer);
     judgeBtn.disabled = false;
     judgeBtn.textContent = '判定する';
   }
@@ -69,7 +102,7 @@ judgeBtn.addEventListener('click', () => {
     ? micResult.textContent.trim()
     : gagInput.value.trim();
   if (activeArea.classList.contains('mic-input-area') && !text) {
-    alert('マイクで話してから判定してください');
+    showError('マイクで話してから判定してください');
     return;
   }
   judgeGag(text);
@@ -85,7 +118,7 @@ function showResult(score, commentText) {
 const STORAGE_KEY = 'gag-judge-history';
 
 function addToLocalHistory(gag, score, comment) {
-  let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  let history = readHistory();
   history.push({ gag, score, comment });
   history.sort((a, b) => b.score - a.score);
   history = history.slice(0, 10);
@@ -93,7 +126,7 @@ function addToLocalHistory(gag, score, comment) {
 }
 
 function loadBest3() {
-  const items = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]').slice(0, 3);
+  const items = readHistory().slice(0, 3);
   bestList.innerHTML = '';
 
   if (items.length === 0) {
@@ -169,9 +202,15 @@ function initSpeechRecognition() {
   };
 
   recognition.onerror = (e) => {
-    if (e.error !== 'aborted') {
-      micStatus.textContent = 'エラー: ' + (e.error === 'no-speech' ? '音声が検出されませんでした' : e.error);
-    }
+    if (e.error === 'aborted') return;
+    const messages = {
+      'no-speech': '音声が検出されませんでした',
+      'not-allowed': 'マイクの使用が許可されていません',
+      'service-not-allowed': 'マイクの使用が許可されていません',
+      'audio-capture': 'マイクが見つかりません',
+      network: '音声認識の通信に失敗しました',
+    };
+    micStatus.textContent = messages[e.error] || '音声認識でエラーが起きました';
   };
 }
 
@@ -187,7 +226,11 @@ micBtn.addEventListener('click', () => {
   }
 
   micResult.textContent = '';
-  recognition.start();
+  try {
+    recognition.start();
+  } catch {
+    micStatus.textContent = 'マイクを開始できませんでした。もう一度押してください';
+  }
 });
 
 // 初回ロード

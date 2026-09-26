@@ -185,6 +185,18 @@ body {
   min-height: 2.5em;
 }
 
+.form-error {
+  color: #ffb4a8;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.best-gag,
+.comment,
+.mic-result {
+  overflow-wrap: anywhere;
+}
+
 .judge-btn {
   width: 100%;
   padding: 1rem 1.5rem;
